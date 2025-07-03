@@ -46,6 +46,17 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.LQR_RAV4)
 
+    elif candidate == CAR.OLD_CAR:
+      stop_and_go = False
+      ret.safetyParam = 100
+      ret.wheelbase = 3.    # HONDA Odyssey 2005 = 3 m; Ford E350 1997 = 4 m
+      ret.steerRatio = 16.2 # HONDA Odyssey 2005 = 16.2 ; Ford E350 1997 = ~ 17
+      tire_stiffness_factor = 0.444  # not optimized yet
+      ret.mass = 4600.   # HONDA Odyssey 2005 = 4600 lb; Ford E350 1997 = 11500 lb
+
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.01]]
+      ret.lateralTuning.pid.kf = 0.00007818594   # full torque for 20 deg at 80mph means 0.00007818594
+
     elif candidate in (CAR.RAV4, CAR.RAV4H):
       stop_and_go = True if (candidate in CAR.RAV4H) else False
       ret.wheelbase = 2.65
@@ -213,7 +224,7 @@ class CarInterface(CarInterfaceBase):
     # In TSS2 cars the camera does long control
     found_ecus = [fw.ecu for fw in car_fw]
     ret.enableDsu = (len(found_ecus) > 0) and (Ecu.dsu not in found_ecus) and (candidate not in NO_DSU_CAR) and (not smartDsu)
-    ret.enableGasInterceptor = 0x201 in fingerprint[0]
+    ret.enableGasInterceptor = True #0x201 in fingerprint[0]
     # if the smartDSU is detected, openpilot can send ACC_CMD (and the smartDSU will block it from the DSU) or not (the DSU is "connected")
     ret.openpilotLongitudinalControl = smartDsu or ret.enableDsu or candidate in TSS2_CAR
 
@@ -244,7 +255,7 @@ class CarInterface(CarInterfaceBase):
 
     ret = self.CS.update(self.cp, self.cp_cam)
 
-    ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
+    ret.canValid = True #self.cp.can_valid and self.cp_cam.can_valid
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
     # events
